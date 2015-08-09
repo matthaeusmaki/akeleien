@@ -11,7 +11,10 @@ public class CharacterUnit : MonoBehaviour {
 	private Vector3 targetPoint;
 	//private UnitStateEnum state = UnitStateEnum.IDLE;
 
+	protected Pathfinder pf;
+
 	protected virtual void Start () {
+		pf = (Pathfinder) gameObject.GetComponent ("Pathfinder");
 		Debug.Log ("start characterUnit");
 	}
 
