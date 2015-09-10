@@ -63,22 +63,22 @@ public class AnimationTest : MonoBehaviour {
 		switch (status)
 		{
 		case STATUS_idle:
-			animation.Play( ANIMATION_idle );
+			GetComponent<Animation>().Play( ANIMATION_idle );
 			break;
 		case STATUS_walk:
-			animation.Play( ANIMATION_walk );
+			GetComponent<Animation>().Play( ANIMATION_walk );
 			break;
 		case STATUS_run:
-			animation.Play( ANIMATION_run );
+			GetComponent<Animation>().Play( ANIMATION_run );
 			break;
 		case STATUS_die:
-			animation.Play( ANIMATION_die );
+			GetComponent<Animation>().Play( ANIMATION_die );
 			break;
 		case STATUS_punch:
-			animation.Play( ANIMATION_punch );
+			GetComponent<Animation>().Play( ANIMATION_punch );
 			break;
 		default:
-			animation.Play( ANIMATION_idle );
+			GetComponent<Animation>().Play( ANIMATION_idle );
 			break;
 		}
 	}

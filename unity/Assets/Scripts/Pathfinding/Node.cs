@@ -10,7 +10,7 @@ public class Node : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		this.renderer.material.color = color;
+		this.GetComponent<Renderer>().material.color = color;
 	}
 	
 	// Update is called once per frame
