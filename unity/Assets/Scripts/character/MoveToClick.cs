@@ -42,12 +42,13 @@ public class MoveToClick : MonoBehaviour {
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out hit))
+        //if (Physics.Raycast(ray, out hit))
+
+		if (Physics.Raycast(ray, out hit, 1000.0f, (1 << 8)))
         {
-            if (hit.collider.gameObject.name.Equals("ground"))
-            {
+            
                 return hit.point;
-            }
+            
         }
         throw new Exception("Boden nicht geunfen !");
     }
