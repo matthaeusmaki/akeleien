@@ -2,23 +2,27 @@
 using System.Collections;
 using System;
 
+/// <summary>
+/// Main character.
+/// </summary>
 public class MainCharacter : MonoBehaviour {
 
-	public AudioSource audioSourceFootsteps;
-	public AudioSource audioSourceMouth;
-	public AudioClip attackClip;		//	Aduio Clip of the player attacking
-	public AudioClip[] gethitClips;		//	Audio Clip of the player getting hit
-	public AudioClip dieClip;
-	public AudioClip[] footstepClips;
+	public AudioSource 	audioSourceFootsteps;		//	Die Sound-Quelle für Schritt-Geräusche
+	public AudioSource 	audioSourceMouth;			//	eine Sound-Quelle für alle anderen Sounds des Characters außer die Schritt-Geräushce
+	public AudioClip 	attackClip;					//	Aduio Clip of the player attacking
+	public AudioClip[] 	gethitClips;				//	Audio Clips für die verschiedenen Sounds wenn der Charakter Schaden erleidet
+	public AudioClip 	dieClip;					//	Audio-clip für das Sterben des Charakters
+	public AudioClip[] 	footstepClips;				//	Audio-clips für die verschiedenen Schrittgeräusche
+	public float		health;						//	Current Healthpoints of the player
+	public float 		attackRange = 1;			//	Die Reichweite der Waffe
 
-	public float health;				//	Current Healthpoints of the player
+	private PiontAndClickMovement movementScript;	//	Eine Referenz auf das Script das sich um das Movement kümmert
+	private Rigidbody 	m_rigidbody;				//	Eine Referenz auf das Rigidbody-Objekt welches für Physikspielereien benötigt wird
+	private Animator 	anim;						//	Reference to the animator component
+	private NavMeshAgent agent;						//	Eine Referenz auf den Agent für die Pfadfindung notwendig ist
 
-	private Rigidbody m_rigidbody;
-	private Animator anim;				//	Reference to the animator component
-	private NavMeshAgent agent;
-	private NavMeshHit navHitPosition;
-	private Vector3 cursorPosition;
-	private GameObject targetObject;
+
+
 
 	/// <summary>
 	/// Awake is called first (Even before Start), Even if the Script-Component is not enabled.
@@ -37,6 +41,7 @@ public class MainCharacter : MonoBehaviour {
 		anim = GetComponent<Animator>();
 		m_rigidbody = GetComponent<Rigidbody> ();
 		agent = GetComponent<NavMeshAgent> ();
+		movementScript = GetComponent<PiontAndClickMovement> ();
 	}
 	
 	/// <summary>
@@ -49,8 +54,7 @@ public class MainCharacter : MonoBehaviour {
 	/// </summary>
 	void Update () {
 
-		//	Bestimme die Bewegung des Charakters
-		MovementManagement ();
+		SteuerungsManagement ();
 
 		//	Bestimmme die Animation die abgespielt werden soll
 		AnimationManagement ();
@@ -75,13 +79,11 @@ public class MainCharacter : MonoBehaviour {
 	private void AnimationManagement () {
 
 		//	Bestimme Geschwindigkeit
-		if (agent.remainingDistance > 0.5f) { // ein abfrage auf 0 kann sporadisch dazu führen dass der Charakter um den Zielpunkt "herumeiert"
+		if (agent.remainingDistance > 0.5f) { // ein abfrage auf exakt 0 kann sporadisch dazu führen dass der Charakter um den Zielpunkt "herumeiert"
 			anim.SetFloat ("Speed", agent.speed);
 		} else {
 			anim.SetFloat ("Speed", 0f);
 		}
-
-
 
 	}
 
@@ -89,28 +91,10 @@ public class MainCharacter : MonoBehaviour {
 	/// <summary>
 	/// Controles what the characters does
 	/// </summary>
-	/// <param name="horizotnal">Horizotnal.</param>
-	/// <param name="vertical">Vertical.</param>
-	/// <param name="attack">If set to <c>true</c> attack.</param>
-	private void MovementManagement () {
+	private void SteuerungsManagement () {
 
 		if (anim.GetBool ("Alive")) {
-			//	Setze Zielpunkt zu Mausklick
-			if (Input.GetKeyDown (KeyCode.Mouse0)) {
-				Debug.Log ("Mausklick registriert");
-				agent.ResetPath ();
-
-				//  Ermittle Ziel
-				Vector3 ziel = findTargetPoint ();
-				try {
-					Debug.Log ("Bewege Spieler zu (X=" + ziel.x + ") (z=" + ziel.z);
-					agent.SetDestination (ziel);
-				} catch (Exception e) {
-					Debug.Log (e);
-				}
-
-			}
-
+			
 			//	Angriffs ggf triggern
 			bool attack = Input.GetKey(KeyCode.Space);
 			if (attack && !anim.GetCurrentAnimatorStateInfo (0).IsName ("Attack")) {				
@@ -118,20 +102,14 @@ public class MainCharacter : MonoBehaviour {
 				audioSourceMouth.Play ();
 			}
 			anim.SetBool ("Attack", attack);
+
+			if (attack) {
+				angreifen ();
+			}
 		}
 
 	}
 
-	private Vector3 findTargetPoint()
-	{
-		RaycastHit hit;
-		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		if (Physics.Raycast(ray, out hit, 1000.0f, (1 << 8)))
-		{
-			return hit.point;
-		}
-		throw new Exception("Boden nicht geunfen !");
-	}
 
 	/// <summary>
 	/// Plays the sounds of the character
@@ -149,19 +127,15 @@ public class MainCharacter : MonoBehaviour {
 			} 
 		}
 
-		//	Besser beim abgreifen der Inputs mit einbauen und als trigger verwenden
-		/*
-		if (anim.GetCurrentAnimatorStateInfo (0).IsName ("Attack")) {
-			if (!audioSourceMouth.isPlaying) {
-				audioSourceMouth.clip = attackClip;
-				audioSourceMouth.Play ();
-			}
-		}
-		*/
-
 	}
 
-
+	/// <summary>
+	/// Routine wenn der Charakter Schaden erleidet.
+	///  - Abzug des Schadens von den aktuellen Lebenspunkten
+	///  - Kontrolle ob noch Lebenspunkte übrig sind. Wenn nicht Sterben-Sequenz einleiten
+	///  - Audio-Cip für das Schaden erleiden abspielen
+	/// </summary>
+	/// <param name="dmg">Die Höhe des Schadens die der Charakter erleidet</param>
 	public void gettingHit(float dmg) {
 		//	Taking dmg 
 		health -= dmg;
@@ -178,15 +152,53 @@ public class MainCharacter : MonoBehaviour {
 
 	}
 
-	public void sterben() {
-		if (anim.GetBool("Alive")) {
-			anim.SetBool ("Alive", false);
-			anim.SetTrigger ("Sterben");
+	/// <summary>
+	/// Leitet das Sterben des Charakters ein:
+	///  - triggert die Sterben-Animation an
+	///  - Spielt die Sterben-Sound ab
+	///  - deaktivierte die anderen Scripte (Movement...)
+	/// </summary>
+	private void sterben() {
+		
+		if (anim.GetBool("Alive")) {	//	nur wenn Charakter überhaupt noch am Leben ist
+			
+			anim.SetBool ("Alive", false);	//	Charakter als Tot kennzeichnen
+			anim.SetTrigger ("Sterben");	//	Sterbe-Animation antriggern
 
+			//	Sterbe-Sound abspielen
 			audioSourceMouth.clip = dieClip;
 			audioSourceMouth.Play ();
+
+			//	Movement-Steuerung deaktivieren
+			movementScript.enabled = false;
 		}
 	}
+
+	private void angreifen() {
+		//if (Physics.Raycast(ray, out hit, 1000.0f, (1 << 8)))
+		Collider[] colliders = Physics.OverlapSphere(transform.position, attackRange, (1<<9) );
+
+		for (int i = 0; i < colliders.Length; i++) {
+			Debug.Log ("Treffer: " + colliders [i].name);
+
+			for (int c = 0; c < colliders [i].transform.childCount; c++) {
+				Transform child = colliders [i].transform.GetChild (c);
+
+				Collider childCollider = child.GetComponent<Collider>();
+				childCollider.enabled = true;
+
+				Rigidbody rigidbody = child.GetComponent<Rigidbody> ();
+				rigidbody.AddForce (-this.transform.forward * 100);
+				rigidbody.useGravity = true;
+
+				Destroy (child.gameObject, 3);
+			}
+
+
+
+		}
+	}
+		
 
 
 }
