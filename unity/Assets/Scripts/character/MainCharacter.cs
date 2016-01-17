@@ -7,7 +7,7 @@ public class MainCharacter : MonoBehaviour {
 	public AudioSource audioSourceFootsteps;
 	public AudioSource audioSourceMouth;
 	public AudioClip attackClip;		//	Aduio Clip of the player attacking
-	public AudioClip gethitClip;		//	Audio Clip of the player getting hit
+	public AudioClip[] gethitClips;		//	Audio Clip of the player getting hit
 	public AudioClip dieClip;
 	public AudioClip[] footstepClips;
 
@@ -57,6 +57,10 @@ public class MainCharacter : MonoBehaviour {
 
 		//	Bestimme den Sound der abgespielt werden soll
 		AudioManagement ();
+
+		if (Input.GetKeyDown ("1")) {
+			sterben ();
+		}
 	}
 
 	/// <summary>
@@ -77,8 +81,7 @@ public class MainCharacter : MonoBehaviour {
 			anim.SetFloat ("Speed", 0f);
 		}
 
-		//	Angriffs ggf triggern
-		anim.SetBool("Attack", Input.GetKey(KeyCode.Space));
+
 
 	}
 
@@ -89,26 +92,32 @@ public class MainCharacter : MonoBehaviour {
 	/// <param name="horizotnal">Horizotnal.</param>
 	/// <param name="vertical">Vertical.</param>
 	/// <param name="attack">If set to <c>true</c> attack.</param>
-	private void MovementManagement (float horizotnal, float vertical, bool attack) {
+	private void MovementManagement () {
 
-		//	Setze Zielpunkt zu Mausklick
-		if (Input.GetKeyDown(KeyCode.Mouse0))
-		{
-			Debug.Log("Mausklick registriert");
-			agent.ResetPath ();
+		if (anim.GetBool ("Alive")) {
+			//	Setze Zielpunkt zu Mausklick
+			if (Input.GetKeyDown (KeyCode.Mouse0)) {
+				Debug.Log ("Mausklick registriert");
+				agent.ResetPath ();
 
-			//  Ermittle Ziel
-			Vector3 ziel = findTargetPoint();
-			try
-			{
-				Debug.Log("Bewege Spieler zu (X=" + ziel.x + ") (z=" + ziel.z);
-				agent.SetDestination(ziel);
+				//  Ermittle Ziel
+				Vector3 ziel = findTargetPoint ();
+				try {
+					Debug.Log ("Bewege Spieler zu (X=" + ziel.x + ") (z=" + ziel.z);
+					agent.SetDestination (ziel);
+				} catch (Exception e) {
+					Debug.Log (e);
+				}
+
 			}
-			catch (Exception e)
-			{
-				Debug.Log(e);
-			}
 
+			//	Angriffs ggf triggern
+			bool attack = Input.GetKey(KeyCode.Space);
+			if (attack && !anim.GetCurrentAnimatorStateInfo (0).IsName ("Attack")) {				
+				audioSourceMouth.clip = attackClip;
+				audioSourceMouth.Play ();
+			}
+			anim.SetBool ("Attack", attack);
 		}
 
 	}
@@ -140,12 +149,15 @@ public class MainCharacter : MonoBehaviour {
 			} 
 		}
 
+		//	Besser beim abgreifen der Inputs mit einbauen und als trigger verwenden
+		/*
 		if (anim.GetCurrentAnimatorStateInfo (0).IsName ("Attack")) {
 			if (!audioSourceMouth.isPlaying) {
 				audioSourceMouth.clip = attackClip;
 				audioSourceMouth.Play ();
 			}
 		}
+		*/
 
 	}
 
@@ -155,14 +167,25 @@ public class MainCharacter : MonoBehaviour {
 		health -= dmg;
 
 		//	Play animation 
-
 		if (health <= 0f) { //	is Player dead?
-			anim.SetBool ("Alive", false);
-
+			sterben ();
 		} else {	// getting hit
 			anim.SetTrigger("GettingHit");
+
+			audioSourceMouth.clip = gethitClips[UnityEngine.Random.Range(0,gethitClips.Length -1)];
+			audioSourceMouth.Play ();
 		}
 
+	}
+
+	public void sterben() {
+		if (anim.GetBool("Alive")) {
+			anim.SetBool ("Alive", false);
+			anim.SetTrigger ("Sterben");
+
+			audioSourceMouth.clip = dieClip;
+			audioSourceMouth.Play ();
+		}
 	}
 
 
