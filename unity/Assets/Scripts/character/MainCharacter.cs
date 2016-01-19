@@ -15,6 +15,7 @@ public class MainCharacter : MonoBehaviour {
 	public AudioClip[] 	footstepClips;				//	Audio-clips für die verschiedenen Schrittgeräusche
 	public float		health;						//	Current Healthpoints of the player
 	public float 		attackRange = 1;			//	Die Reichweite der Waffe
+	public float 		forceToPushStone = 100f;
 
 	private PiontAndClickMovement movementScript;	//	Eine Referenz auf das Script das sich um das Movement kümmert
 	private Rigidbody 	m_rigidbody;				//	Eine Referenz auf das Rigidbody-Objekt welches für Physikspielereien benötigt wird
@@ -188,7 +189,7 @@ public class MainCharacter : MonoBehaviour {
 				childCollider.enabled = true;
 
 				Rigidbody rigidbody = child.GetComponent<Rigidbody> ();
-				rigidbody.AddForce (-this.transform.forward * 100);
+				rigidbody.AddForce (-this.transform.forward * forceToPushStone);
 				rigidbody.useGravity = true;
 
 				Destroy (child.gameObject, 3);
