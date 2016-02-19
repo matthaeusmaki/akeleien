@@ -16,6 +16,7 @@ public class MainCharacter : MonoBehaviour {
 	public float		health;						//	Current Healthpoints of the player
 	public float 		attackRange = 1;			//	Die Reichweite der Waffe
 	public float 		forceToPushStone = 100f;
+	public MainCharacterHashIds hashIds;
 
 	private PiontAndClickMovement movementScript;	//	Eine Referenz auf das Script das sich um das Movement kümmert
 	private Rigidbody 	m_rigidbody;				//	Eine Referenz auf das Rigidbody-Objekt welches für Physikspielereien benötigt wird
