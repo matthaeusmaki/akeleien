@@ -56,6 +56,19 @@ public class EnemyDefaultScript : MonoBehaviour {
 	/// <summary> Die Wegpunkte die der Charakter abläuft </summary>
 	public Transform[] waypoints;
 
+	[HideInInspector]
+	public bool isRunning = false;
+
+	[HideInInspector]
+	public bool isWalking = false;
+
+	[HideInInspector]
+	public bool isIdling = false;
+
+	[HideInInspector]
+	public bool isAttacking = false;
+
+
 	//------------------------------------------------------------------------------------------------------------------------
 
 	/// <summary> Zeit die der Gegner am erreichte Wegpunkt schon wartet </summary>
@@ -78,6 +91,9 @@ public class EnemyDefaultScript : MonoBehaviour {
 
 	/// <summary>The index of the waypoint. </summary>
 	private int waypointIndex = 0;
+
+	private bool isEnemyAlive = true;
+	private bool isPlayerAlive = true;
 
 	//  ======================================================================================================================
 
@@ -122,15 +138,10 @@ public class EnemyDefaultScript : MonoBehaviour {
 	void Update () {
 		Debug.DrawLine (this.transform.position, player.transform.position);
 
-		bool isEnemyAlive = anim.GetBool ("Alive");
-		bool isPlayerAlive = playerAnim.GetBool ("Alive");
 		bool isPlayerInSight = enemySight.isPlayerInSight;
 		bool isPlayerInWeaponrange = isPlayerInWeaponRange ();
 
-		anim.SetBool ("PlayerIsInSight", isPlayerInSight);
-		anim.SetBool ("PlayerIsInWeaponRange", isPlayerInWeaponrange);
-
-		Debug.Log ("(isEnemyAlive? " + isEnemyAlive +") (isPlayerAlive? " + isPlayerAlive + ") (isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
+		//Debug.Log ("(isEnemyAlive? " + isEnemyAlive +") (isPlayerAlive? " + isPlayerAlive + ") (isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
 
 
 		//	Wenn der Spieler am Leben und in Waffen-Reichweite ist
@@ -161,8 +172,36 @@ public class EnemyDefaultScript : MonoBehaviour {
 
 		}
 
-//		anim.SetFloat ("Speed", nav.speed);
+		evaluateStateParamater ();
 
+	}
+
+	/// <summary>
+	/// Evaluates the state paramater and writes them into the AnimatorController
+	/// </summary>
+	private void evaluateStateParamater () {
+		//	Übertrage Werte in Animator Controller
+		if (nav.speed < patroleSpeed) {
+			isIdling	= 	true;
+			isWalking 	= 	false;
+			isRunning 	= 	false;
+		} else if (nav.speed >= patroleSpeed && nav.speed < runSpeed) {
+			isIdling 	= 	false;
+			isWalking 	= 	true;
+			isRunning 	= 	false;
+		} else if (nav.speed >= runSpeed) {
+			isIdling 	= 	false;
+			isWalking 	= 	false;
+			isRunning 	= 	true;
+		} else {
+			isIdling 	=	false;
+			isWalking 	= 	false;
+			isRunning 	= 	false;
+		}
+
+		anim.SetBool ("idle", isIdling);
+		anim.SetBool ("walk", isWalking);
+		anim.SetBool ("run", isRunning);
 	}
 
 	/// <summary>
@@ -170,8 +209,8 @@ public class EnemyDefaultScript : MonoBehaviour {
 	/// </summary>
 	public void hitPlayer () {
 		Debug.Log ("HitPlayer ... ");
-		anim.SetBool ("Attack", true);
-		playerAnim.SetTrigger("GettingHit");
+		anim.SetTrigger ("attack");
+		//@todo im Player script "takeDamage" aufrufen
 	}
 
 	/// <summary>
@@ -198,7 +237,7 @@ public class EnemyDefaultScript : MonoBehaviour {
 	public void gettingHit(float amountOfDamage) {
 		healthPoints -= amountOfDamage;
 		if (healthPoints <= 0f) {
-			anim.SetBool ("Alive", false);
+			die ();
 		}
 	}
 
@@ -208,10 +247,8 @@ public class EnemyDefaultScript : MonoBehaviour {
 	private void die() {
 
 		//	Animation via Animator antriggern
-		anim.SetTrigger("Sterben");
-
-		//	Merke dass Charakter tot ist
-		anim.SetBool ("Alive", false);
+		anim.SetTrigger("die");
+		isEnemyAlive = false;
 
 	}
 
@@ -233,14 +270,11 @@ public class EnemyDefaultScript : MonoBehaviour {
 		if (waypoints.Length == 0)
 			return;
 
-		//	Setze die Geschwindigkeit des Gegners
-		nav.speed = patroleSpeed;
+
 
 		//	wurde das Ziel erreicht?
 		if (nav.remainingDistance <= nav.stoppingDistance) {
-
-			anim.SetFloat ("Speed", 0.0f);
-
+			
 			//	Warte eine gewisse Zeit am erreichten Wegpunkt
 			patrolTime += Time.deltaTime;
 			if (patrolTime >= patrolWaitTime) {
@@ -254,12 +288,18 @@ public class EnemyDefaultScript : MonoBehaviour {
 
 				//	Setze Timer zurück
 				patrolTime = 0;
-				anim.SetFloat ("Speed", patroleSpeed);
-				nav.destination = waypoints[waypointIndex].position;
+				nav.destination = waypoints [waypointIndex].position;
+
+				//	Setze die Geschwindigkeit des Gegners
+				nav.speed = patroleSpeed;
 			} else {
-				//warten	
+				//warten
+				nav.speed	=	0.0f;
 			}
 
+		} else {
+			//	Setze die Geschwindigkeit des Gegners
+			nav.speed = patroleSpeed;
 		}
 
 	}
