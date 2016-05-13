@@ -23,9 +23,6 @@ using System.Collections;
 /// </summary>
 public class EnemyDefaultScript : MonoBehaviour {
 	
-	/// <summary>Die Lebenspunkte des Gegners</summary>
-	public float healthPoints = 100.0f;
-
 	/// <summary>Die Höhe des Schadens die der Gegner verursacht</summary>
 	public float damage = 15.0f;
 
@@ -86,6 +83,9 @@ public class EnemyDefaultScript : MonoBehaviour {
 	/// <summary>Referenz auf das Script 'EnemySight' welches sich darum kümmert ob der Spieler gesehen wird.</summary>
 	private EnemySight enemySight;
 
+	/// <summary> The health management. </summary>
+	private HealthManagement healthManagement;
+
 	/// <summary>Referenz auf den Animator des Spielers</summary>
 	private Animator playerAnim;
 
@@ -107,13 +107,20 @@ public class EnemyDefaultScript : MonoBehaviour {
 	/// 
 	/// </summary>
 	void Awake() {		
+
+		Debug.Log ("Awake...");
 		nav 		= 	GetComponent<NavMeshAgent> ();
 		anim		=	GetComponent<Animator> ();
 		player		=	GameObject.FindGameObjectWithTag ("Player");
-		playerAnim	=	player.GetComponent<Animator> ();
-		enemySight	=	GetComponent<EnemySight> ();
 
-		if (player == null) Debug.Log("Player-Referenz nicht gefunden !");
+		enemySight	=	GetComponent<EnemySight> ();
+		healthManagement	=	GetComponent<HealthManagement> ();
+
+		if (player == null) {
+			Debug.Log ("Player-Referenz nicht gefunden !");
+		} else {
+			playerAnim	=	player.GetComponent<Animator> ();
+		}
 		if (anim == null)
 			Debug.Log ("Animator-Referenz nicht gefunden !");
 		if ( nav == null) Debug.Log("NavMeshAgent-Referenz nicht gefunden !");
@@ -136,43 +143,36 @@ public class EnemyDefaultScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		Debug.DrawLine (this.transform.position, player.transform.position);
+//		Debug.DrawLine (this.transform.position, player.transform.position);
+		if (healthManagement == null)
+			Debug.Log ("Fuck it. Healthmanagment is null");
 
-		bool isPlayerInSight = enemySight.isPlayerInSight;
-		bool isPlayerInWeaponrange = isPlayerInWeaponRange ();
+		if (!healthManagement.alive) {
+			die ();
+		} else {
 
-		//Debug.Log ("(isEnemyAlive? " + isEnemyAlive +") (isPlayerAlive? " + isPlayerAlive + ") (isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
+			bool isPlayerInSight = enemySight.isPlayerInSight;
+			bool isPlayerInWeaponrange = isPlayerInWeaponRange ();
+
+			//Debug.Log ("(isEnemyAlive? " + isEnemyAlive +") (isPlayerAlive? " + isPlayerAlive + ") (isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
 
 
-		//	Wenn der Spieler am Leben und in Waffen-Reichweite ist
-		if (isEnemyAlive 
-			&& isPlayerAlive
-			&& isPlayerInWeaponrange) {
+			//	Wenn der Spieler am Leben und in Waffen-Reichweite ist
+			if (isEnemyAlive
+			   && isPlayerAlive
+			   && isPlayerInWeaponrange) {
 
-			Debug.Log ("Schlage Spieler ! [" + Time.fixedTime + "]");
-			//	Schlage zu
-			hitPlayer();
-		}	
+				Debug.Log ("Schlage Spieler ! [" + Time.fixedTime + "]");
+				//	Schlage zu
+				hitPlayer ();
+			}	
 
-		//	Oder wenn der Spieler am Leben und in Sichtweite ist
-		else if (isEnemyAlive 
-			&& isPlayerAlive
-			&& isPlayerInSight) {
-			Debug.Log ("greife Spieler an ! [" + Time.fixedTime + "]");
-			//	attackieren 
-			chasing();
-
-		}
-
-		//	andernfalls...
-		else {
 			//	Patrolliere weiter
 			Debug.Log ("patrolliere ! [" + Time.fixedTime + "]");
-			patrolling();
+			patrolling ();
 
+			evaluateStateParamater ();
 		}
-
-		evaluateStateParamater ();
 
 	}
 
@@ -234,9 +234,9 @@ public class EnemyDefaultScript : MonoBehaviour {
 	/// Der Gegner bekommt Schaden. 
 	/// </summary>
 	/// <param name="amountOfDamage">Amount of damage.</param>
-	public void gettingHit(float amountOfDamage) {
-		healthPoints -= amountOfDamage;
-		if (healthPoints <= 0f) {
+	public void gettingHit(int amountOfDamage) {
+		healthManagement.takeDamage (amountOfDamage);
+		if (!healthManagement.alive) {
 			die ();
 		}
 	}

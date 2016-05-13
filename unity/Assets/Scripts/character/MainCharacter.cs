@@ -31,7 +31,7 @@ public class MainCharacter : MonoBehaviour {
 	/// Is best used for: References between scripts and initialisation
 	/// </summary>
 	private void Awake() {		
-
+		
 
 	}
 
@@ -177,7 +177,15 @@ public class MainCharacter : MonoBehaviour {
 	}
 
 	private void angreifen() {
-		//if (Physics.Raycast(ray, out hit, 1000.0f, (1 << 8)))
+
+		//	Nur wenn angreifen momentan nicht ausgeführt wird
+
+		Debug.Log ("currentAnimStateInfo: isAttack? " + anim.GetCurrentAnimatorStateInfo (0).IsName("Attack"));
+		if (anim.GetCurrentAnimatorStateInfo(0).IsName("Attack")) return;
+
+
+
+		//	Prüfe auf Wandtreffer
 		Collider[] colliders = Physics.OverlapSphere(transform.position, attackRange, (1<<9) );
 
 		for (int i = 0; i < colliders.Length; i++) {
@@ -196,8 +204,21 @@ public class MainCharacter : MonoBehaviour {
 				Destroy (child.gameObject, 3);
 			}
 
+		}
 
-
+		//	Prüfe auf Gegner
+		Collider[] enemyCollider = Physics.OverlapSphere(transform.position, attackRange, (1<<10));
+		for (int j = 0; j < enemyCollider.Length; j++) {
+			try {
+				HealthManagement healthManagement = enemyCollider[j].GetComponent<HealthManagement>();
+				if ( healthManagement != null) {	
+					if (healthManagement.alive) {
+						healthManagement.takeDamage(10);
+					}
+				}
+			}	catch(Exception ex) {
+				Debug.LogError (ex);
+			}
 		}
 	}
 		
