@@ -93,6 +93,7 @@ public class AnimationManagement : MonoBehaviour {
 	/// Make the character idle --> stand on his position and idles...
 	/// </summary>
 	public void idle() {
+		Debug.Log ("idling...");
 		move (false, false, true, this.transform.position, 0.0f);
 	}
 

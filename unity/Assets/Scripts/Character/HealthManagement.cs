@@ -41,8 +41,11 @@ public class HealthManagement : MonoBehaviour {
 	/// <summary> Indicator if the Character is alive </summary>
 	public bool alive =	true;
 
+	private Animator anim;
+
 	public void Awake() {		
 		mainCamera = Camera.main;
+		anim = GetComponent<Animator> ();
 	}
 
 
@@ -65,6 +68,9 @@ public class HealthManagement : MonoBehaviour {
 	/// <summary> Takes damage. </summary>
 	/// <param name="amountOfDamage">Amount of damage.</param>
 	public void takeDamage (int amountOfDamage) {
+
+		if (anim) anim.SetTrigger ("gettingHit"); //@todo Direkte Ansteurung des Animators wirklich in Ordnung?
+
 		m_CurrentHealth -= amountOfDamage;
 		if (m_CurrentHealth <= 0) {
 			alive = false;
@@ -80,18 +86,21 @@ public class HealthManagement : MonoBehaviour {
 	/// </summary>
 	private void drawHealthbar() {
 
-		Debug.Log ("...draw Healthbar...");
+		if (alive) {
 		
-		//	Set the sliedrs valure
-		if (!m_Slider) 
-			return;		
+			//	Set the sliedrs valure
+			if (!m_Slider)
+				return;		
 
-		m_Slider.value = m_CurrentHealth;
+			m_Slider.value = m_CurrentHealth;
 
-		if (m_FillImage)
-			m_FillImage.color = Color.Lerp (m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
+			if (m_FillImage)
+				m_FillImage.color = Color.Lerp (m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
 
-		m_Slider.transform.rotation = mainCamera.transform.rotation;
+			m_Slider.transform.rotation = mainCamera.transform.rotation;
+		} else {
+			m_Slider.gameObject.SetActive (false);
+		}
 			
 	}
 

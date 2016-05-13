@@ -10,7 +10,7 @@ public class SimpleEnemyKi : MonoBehaviour {
 	public float runSpeed = 4.0f;
 
 	/// <summary>Die Geschwindigkeit des Gegners, während er patroulliert</summary>
-	public float patroleSpeed = 2.0f;
+	public float patroleSpeed = 1.5f;
 
 	/// <summary>Die Geschwindigkeit des Gegners, wenn er den Rückzug wegen Inaktivität antrtit</summary>
 	public float retreadSpeed = 5.0f;
