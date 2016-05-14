@@ -7,10 +7,17 @@ public class EnemySight : MonoBehaviour {
 	public float fieldOfViewAngle = 110f;
 	/// <summary> Angabe ob der Spieler in Sichtweite ist </summary>
 	public bool isPlayerInSight = false;
+    public float viewDistance = 10f;
+
+    [HideInInspector]
 	/// <summary> Angabe wo der Spieler beim letzten Frame noch gesehen wurde </summary>
 	public Vector3 lastPlayerSighting;
+
+    [HideInInspector]
 	/// <summary> Die letzte Position des Spielers die dieser Gegner selbst gesehen hat	</summary>
 	public float lastPlayerSightingTime;
+
+
 
 	//----------------------------------------------------------------------------------------------
 
@@ -37,10 +44,7 @@ public class EnemySight : MonoBehaviour {
 	/// </summary>
 	void Awake() {
 		nav			=	GetComponent<NavMeshAgent> ();
-		col			=	GetComponent<SphereCollider> ();
-		anim 		=	GetComponent<Animator> ();
 		player		=	GameObject.FindGameObjectWithTag ("Player");
-		playerAnim	=	player.GetComponent<Animator> ();
 
 		if (player == null) 
 			Debug.Log("Player-Referenz nicht gefunden !");
@@ -72,81 +76,46 @@ public class EnemySight : MonoBehaviour {
 	/// </summary>
 	void Update () {
 		
-		//	nur wenn Spieler am Leben ist
-		if (playerAnim.GetBool ("Alive")) {
-			if (isPlayerInSight)
-				Debug.Log ("Player is in Sight");
-			//	Setze den Flag ob Spieler in Sichtweite ist (wird von Event 'OnTriggerStay' ermittelt)
-			//anim.SetBool ("PlayerInSight", isPlayerInSight);
-		} else {
-			//anim.SetBool ("PlayerInSight", false);
-		}
+		//	nur wenn Spieler am Leben ist		
+        calculateIfPlayerIsInSight();
+		if (isPlayerInSight)
+			Debug.Log ("Player is in Sight");
+		
 
 	}
 
+    private void calculateIfPlayerIsInSight()
+    {
+        //  Distanz zu Spieler geringer als Sichtweite?
+        float distance = Vector3.Distance(player.transform.position, this.transform.position);
+        if (distance < viewDistance)
+        {
 
-	/// <summary>
-	///	<EVENT>:
-	/// 	OnTriggerStay is called once per frame for every Collider other that is touching the trigger.
-	/// 
-	/// <FUNKTION>:
-	/// 	Überprüft ob der Spieler in Sichtweite ist
-	/// </summary>
-	/// <param name="other">Name of the collider.</param>
-	void OnTriggerStay(Collider other) {
-		
-		//	Handelt es sich um den Spieler der den Trigger ausgelöst hat?
-		if (other.gameObject == player) {
-			
-			//	Standardmäßig setzen dass Spieler nicht in Sichtweite ist
-			isPlayerInSight = false;
-
-			//	Erzeuge einen Vector vom Gegner zum Spieler und ermittle den Winkel dazwischen startend bei forward
-			Vector3 direction	=	other.transform.position - transform.position;
+            //  Ist Spieler auch im Blickfeld?
+            Vector3 direction	=	player.transform.position - transform.position;
 			float angle =	Vector3.Angle (direction, transform.forward);
 
 			//	Ist der Winkel noch im Sichtfeld? (FieldOfView muss halbiert werden da von forward [=Mitte] ausgegeangen wird)
-			if (angle < fieldOfViewAngle * 0.5f) {
+            if (angle < fieldOfViewAngle * 0.5f)
+            {
+                //	Besteht eine dirkete Sicht zum Spieler?
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position + transform.up, //+up damit der raycast nicht am Boden entlang läuft
+                        direction.normalized, out hit, viewDistance))
+                {
 
-				//	Besteht eine dirkete Sicht zum Spieler?
-				RaycastHit hit;
-				if (Physics.Raycast (transform.position + transform.up, //+up damit der raycast nicht am Boden entlang läuft
-					    direction.normalized, out hit, col.radius)) {
-
-					if (hit.collider.gameObject == player) {
-						isPlayerInSight = true;
-						lastPlayerSightingTime = Time.fixedTime;
-						lastPlayerSighting = player.transform.position;
-					}
-				}
-			
-			}
-
-		}
-
-	}
-
-	/// <summary>
-	/// OnTriggerExit is called when the Collider other has stopped touching the trigger.
-	/// </summary>
-	/// <param name="other">Other.</param>
-	void OnTriggerExit (Collider other)
-	{
-		// If the player leaves the trigger zone...
-		if (other.gameObject == player) {
-			// ... the player is not in sight.
-			isPlayerInSight = false;
-		}
-	}
-
-	/// <summary>
-	/// OnTriggerEnter is called when the Collider other enters the trigger.
-	/// </summary>
-	/// <param name="other">Other.</param>
-	void OnTriggerEnter(Collider other) 
-	{
-		
-	}
-
+                    if (hit.collider.gameObject == player)
+                    {
+                        isPlayerInSight = true;
+                        lastPlayerSightingTime = Time.fixedTime;
+                        lastPlayerSighting = player.transform.position;
+                        return;
+                    }
+                }
+            }
+        }
+        isPlayerInSight = false;
+    }
+    
 
 }

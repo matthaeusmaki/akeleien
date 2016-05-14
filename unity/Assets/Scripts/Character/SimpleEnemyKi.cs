@@ -36,9 +36,6 @@ public class SimpleEnemyKi : MonoBehaviour {
 	[HideInInspector]
 	public bool isAttacking = false;
 
-	[HideInInspector]
-	public bool isChasing = false;
-
 	//------------------------------------------------------------------------------------------------------------------------
 
 	/// <summary> Zeit die der Gegner am erreichte Wegpunkt schon wartet </summary>
@@ -117,36 +114,41 @@ public class SimpleEnemyKi : MonoBehaviour {
 
 		//	Is the character alive? 
 		if (healthManagement.alive) {
+            //Debug.Log("Time: " + timeSinceLastActionHappend);
+
 
 			bool isPlayerInSight = enemySight.isPlayerInSight;		//	is the player in Sight?
 			bool isPlayerInWeaponrange = isPlayerInWeaponRange ();	//	Is the player in Weapon-Range?
 
-			//Debug.Log ("(isEnemyAlive? " + isEnemyAlive +") (isPlayerAlive? " + isPlayerAlive + ") (isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
+			//Debug.Log ("(isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
 
 			//	verifies if the character is/should chase
-			setMode (isPlayerInSight);
+			bool isChasing = setMode (isPlayerInSight);
+            
 
 			//	Wenn der Spieler am Leben und in Waffen-Reichweite ist
-			if (healthManagement.alive
-			    && isPlayerInWeaponrange) {
+			if (isPlayerInWeaponrange 
+                //&& !isAttacking
+                ) {
 
 				//	Timer wieder auf 0 setzen
-				timeSinceLastActionHappend = 0;
+				timeSinceLastActionHappend = 0.0f;
 
 				//	Schlage / Attackiere Spieler
-				Debug.Log ("Schlage Spieler ! [" + Time.fixedTime + "]");
-				animManagement.attack (player, damage);
+				animManagement.attack (player, 1);
+                isAttacking = true;
 
 			} 
 
 			//	Wenn der Spieler am Leben ist und in Sichtweite
 			else if (isChasing) {
+                timeSinceLastActionHappend += Time.deltaTime;
 				animManagement.run (player.transform.position, runSpeed);
 			} 
 
 			//	Default --> Patrollieren
 			else {
-
+                timeSinceLastActionHappend = 0.0f;
 				//	Patrolliere weiter
 				//Debug.Log ("patrolliere ! [" + Time.fixedTime + "]");
 				patrolling ();
@@ -163,24 +165,29 @@ public class SimpleEnemyKi : MonoBehaviour {
 	/// </summary>
 	/// <param name="isPlayerInSight">If set to <c>true</c> is player in sight.</param>
 	/// <param name="isPlayerInWeaponrange">If set to <c>true</c> is player in weaponrange.</param>
-	private void setMode(bool isPlayerInSight) {
+	private bool setMode(bool isPlayerInSight) {
 
-
+        bool isChasing = false;
 
 		//	Wenn (Spieler am Leben) und (noch nicht im Chase-Modus) und (Spieler in Sichtweite ist)
 		if (
 			healthManagement.alive
 			&&	isPlayerInSight) {
-			isChasing = true;
+                
+			    isChasing = true;
 		}
 
 		//	Wenn im Chase-Modues
 		if (isChasing) {
 
 			//	Is the last combat-Action hast past to long
-			if (timeSinceLastActionHappend > maxTimeOfInactivityOnCombat)
-				isChasing = false;
+            if (timeSinceLastActionHappend > maxTimeOfInactivityOnCombat)
+            {                
+                isChasing = false;
+                
+            }
 		}
+        return isChasing;
 	}
 
 	/// <summary>
