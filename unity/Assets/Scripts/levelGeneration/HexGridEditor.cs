@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 
-[CustomEditor (typeof(HexGrid))]
+[CustomEditor(typeof(HexGrid))]
 public class HexGridEditor : Editor {
 
     private const char ADD = 'a';
@@ -40,8 +40,16 @@ public class HexGridEditor : Editor {
 
     public override void OnInspectorGUI() {
         GUILayout.BeginHorizontal();
-        GUILayout.Label("Tile Width");
-        grid.tileWidth = Mathf.Max(1, EditorGUILayout.FloatField(grid.tileWidth, GUILayout.Width(150)));
+        GUILayout.Label("Size");
+        grid.size = Mathf.Max(0.001f, EditorGUILayout.FloatField(grid.size, GUILayout.Width(150)));
+        GUILayout.EndHorizontal();
+
+        grid.tileHeight = grid.size * 2;
+        grid.tileWidth = Mathf.Sqrt(3) / 2 * grid.tileHeight;
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("Offset");
+        grid.offset= Mathf.Max(0, EditorGUILayout.FloatField(grid.offset, GUILayout.Width(150)));
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
@@ -58,7 +66,12 @@ public class HexGridEditor : Editor {
         GUILayout.Label("Grid Color");
         grid.color = EditorGUILayout.ColorField(grid.color, GUILayout.Width(150));
         GUILayout.EndHorizontal();
-        
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Button("Redraw");
+        grid.Redraw();
+        GUILayout.EndHorizontal();
+
         SceneView.RepaintAll();
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class FackelLicht : MonoBehaviour {
-	
+
 	public float m_IntensitiyMin = 3;
 	public float m_IntensitiyMax = 4;
 	public float m_RangeMin = 6;
