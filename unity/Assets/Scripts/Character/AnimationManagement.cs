@@ -41,6 +41,10 @@ public class AnimationManagement : MonoBehaviour {
 		//	Controle the Aniamtor
 		animator.SetTrigger(PARAM_attack);
 
+        //  Calculate the damage
+        MainCharacter mc = target.GetComponent<MainCharacter>();
+        mc.gettingHit(damage);
+
 	}
 
 	/// <summary>
@@ -48,7 +52,8 @@ public class AnimationManagement : MonoBehaviour {
 	/// </summary>
 	public void die() {
 		
-		animator.SetTrigger (PARAM_die);
+		animator.SetBool (PARAM_die, true);        
+        nav.enabled = false;
 		//@todo character disablen
 
 	}

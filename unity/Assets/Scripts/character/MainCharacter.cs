@@ -13,17 +13,17 @@ public class MainCharacter : MonoBehaviour {
 	public AudioClip[] 	gethitClips;				//	Audio Clips für die verschiedenen Sounds wenn der Charakter Schaden erleidet
 	public AudioClip 	dieClip;					//	Audio-clip für das Sterben des Charakters
 	public AudioClip[] 	footstepClips;				//	Audio-clips für die verschiedenen Schrittgeräusche
-	public float		health;						//	Current Healthpoints of the player
+	
 	public float 		attackRange = 1;			//	Die Reichweite der Waffe
 	public float 		forceToPushStone = 100f;
-	public MainCharacterHashIds hashIds;
 
 	private PiontAndClickMovement movementScript;	//	Eine Referenz auf das Script das sich um das Movement kümmert
 	private Rigidbody 	m_rigidbody;				//	Eine Referenz auf das Rigidbody-Objekt welches für Physikspielereien benötigt wird
 	private Animator 	anim;						//	Reference to the animator component
 	private NavMeshAgent agent;						//	Eine Referenz auf den Agent für die Pfadfindung notwendig ist
-
-
+    [HideInInspector]
+    public HealthManagement healthManagement;
+    public bool isAttacking = false;
 
 
 	/// <summary>
@@ -44,6 +44,7 @@ public class MainCharacter : MonoBehaviour {
 		m_rigidbody = GetComponent<Rigidbody> ();
 		agent = GetComponent<NavMeshAgent> ();
 		movementScript = GetComponent<PiontAndClickMovement> ();
+        healthManagement = GetComponent<HealthManagement>();
 	}
 	
 	/// <summary>
@@ -98,16 +99,22 @@ public class MainCharacter : MonoBehaviour {
 		if (anim.GetBool ("Alive")) {
 			
 			//	Angriffs ggf triggern
-			bool attack = Input.GetKey(KeyCode.Space);
-			if (attack && !anim.GetCurrentAnimatorStateInfo (0).IsName ("Attack")) {				
+			bool attack = Input.GetKeyDown(KeyCode.Space);
+
+			if (attack && !isAttacking) {				
 				audioSourceMouth.clip = attackClip;
 				audioSourceMouth.Play ();
-			}
-			anim.SetBool ("Attack", attack);
-
-			if (attack) {
+                anim.SetBool("Attack", true);
+                isAttacking = true;
+			    
 				angreifen ();
-			}
+			    
+            }
+            else
+            {
+                anim.SetBool("Attack", false);
+            }
+			
 		}
 
 	}
@@ -139,18 +146,24 @@ public class MainCharacter : MonoBehaviour {
 	/// </summary>
 	/// <param name="dmg">Die Höhe des Schadens die der Charakter erleidet</param>
 	public void gettingHit(float dmg) {
-		//	Taking dmg 
-		health -= dmg;
+        if (healthManagement.alive)
+        {
+            //	Taking dmg 
+            healthManagement.takeDamage( (int) dmg);
 
-		//	Play animation 
-		if (health <= 0f) { //	is Player dead?
-			sterben ();
-		} else {	// getting hit
-			anim.SetTrigger("GettingHit");
+            //	Play animation 
+            if (!healthManagement.alive)
+            { //	is Player dead?
+                sterben();
+            }
+            else
+            {	// getting hit
+                anim.SetTrigger("GettingHit");
 
-			audioSourceMouth.clip = gethitClips[UnityEngine.Random.Range(0,gethitClips.Length -1)];
-			audioSourceMouth.Play ();
-		}
+                audioSourceMouth.clip = gethitClips[UnityEngine.Random.Range(0, gethitClips.Length - 1)];
+                audioSourceMouth.Play();
+            }
+        }
 
 	}
 
@@ -179,7 +192,7 @@ public class MainCharacter : MonoBehaviour {
 	private void angreifen() {
 
 		//	Nur wenn angreifen momentan nicht ausgeführt wird
-
+        
 		Debug.Log ("currentAnimStateInfo: isAttack? " + anim.GetCurrentAnimatorStateInfo (0).IsName("Attack"));
 		if (anim.GetCurrentAnimatorStateInfo(0).IsName("Attack")) return;
 
@@ -210,11 +223,12 @@ public class MainCharacter : MonoBehaviour {
 		Collider[] enemyCollider = Physics.OverlapSphere(transform.position, attackRange, (1<<10));
 		for (int j = 0; j < enemyCollider.Length; j++) {
 			try {
-				HealthManagement healthManagement = enemyCollider[j].GetComponent<HealthManagement>();
-				if ( healthManagement != null) {	
-					if (healthManagement.alive) {
-						healthManagement.takeDamage(10);
-					}
+                AnimationManagement animManagement = enemyCollider[j].GetComponent<AnimationManagement>();
+				if ( animManagement != null) {	
+					//if (ki.hhealthManagement.alive) {
+						//healthManagement.takeDamage(60);
+                    animManagement.takeDamage(60);
+					//}
 				}
 			}	catch(Exception ex) {
 				Debug.LogError (ex);

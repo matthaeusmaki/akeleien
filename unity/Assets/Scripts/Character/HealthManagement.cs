@@ -11,6 +11,7 @@ using UnityEngine.UI;
 /// </summary>
 public class HealthManagement : MonoBehaviour {
 
+
 	/// <summary> The GUI-Element to show the HealthPoints </summary>
 	public Slider m_Slider;
 
@@ -68,9 +69,7 @@ public class HealthManagement : MonoBehaviour {
 	/// <summary> Takes damage. </summary>
 	/// <param name="amountOfDamage">Amount of damage.</param>
 	public void takeDamage (int amountOfDamage) {
-
-		if (anim) anim.SetTrigger ("gettingHit"); //@todo Direkte Ansteurung des Animators wirklich in Ordnung?
-
+        
 		m_CurrentHealth -= amountOfDamage;
 		if (m_CurrentHealth <= 0) {
 			alive = false;
