@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class HexGrid : MonoBehaviour {
 
@@ -28,13 +29,13 @@ public class HexGrid : MonoBehaviour {
         }
     }
 
-    public Vector3[,] points;
+    public List<Vector3> points = new List<Vector3>();
 
     void OnDrawGizmos() {
         Gizmos.color = color;
         Vector3 pos = this.transform.position;
 
-        points = new Vector3[columns, rows];
+        points.Clear();
 
         for (int col = 0; col < columns; ++col) {
             float posX = pos.x + col * tileWidth;
@@ -43,7 +44,7 @@ public class HexGrid : MonoBehaviour {
 
                 Vector3 center = new Vector3(posX + (row % 2 == 0 ? tileWidth / 2 : 0), posZ, offset);
                 drawHex(center);
-                points[col, row] = center;
+                points.Add(center);
             }
         }
     }
@@ -68,23 +69,23 @@ public class HexGrid : MonoBehaviour {
 
     public Vector3 FindNextPoint(Vector3 mousePos) {
         Debug.Log("find nearest hex to " + mousePos);
-        Debug.DrawLine(new Vector3(mousePos.x - pointSize / 2, mousePos.z, mousePos.y), new Vector3(mousePos.x + pointSize / 2, mousePos.z, mousePos.y));
-        Debug.DrawLine(new Vector3(mousePos.x, mousePos.z, mousePos.y - pointSize / 2), new Vector3(mousePos.x, mousePos.z, mousePos.y + pointSize / 2));
+        //Debug.DrawLine(new Vector3(mousePos.x - pointSize / 2, mousePos.z, mousePos.y), new Vector3(mousePos.x + pointSize / 2, mousePos.z, mousePos.y));
+        //Debug.DrawLine(new Vector3(mousePos.x, mousePos.z, mousePos.y - pointSize / 2), new Vector3(mousePos.x, mousePos.z, mousePos.y + pointSize / 2));
 
         float distance = tileWidth;
         Vector3 nearestPoint = new Vector3(0f,0f,0f);
-        for (int i = 0; i < points.GetLength(0); ++i) {
-            for (int j = 0; j < points.GetLength(1); ++j) {
-                //Debug.Log(j);
-                float d = Vector3.Distance(points[i, j], mousePos);
-                if (d < distance) {
-                    distance = d;
-                    nearestPoint = points[i, j];
-                    Debug.Log("x: " + i + ", y: " + j);
-                }
+        for (int i = 0; i < points.Count; ++i) {
+            Vector3 p = points[i];
+            float d = Vector3.Distance(new Vector3(p.x, 0f, p.y), mousePos);
+            if (d < distance) {
+                distance = d;
+                nearestPoint = points[i];
             }
         }
-        
+
+        nearestPoint = new Vector3(nearestPoint.x, nearestPoint.z, nearestPoint.y);
+
+        Debug.Log("nearest point is " + nearestPoint);
         return nearestPoint;
     }
 }

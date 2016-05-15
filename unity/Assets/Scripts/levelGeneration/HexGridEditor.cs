@@ -19,7 +19,7 @@ public class HexGridEditor : Editor {
 
     public void OnEnable() {
         grid = (HexGrid)target;
-        SceneView.onSceneGUIDelegate += GridUpdate;
+        SceneView.onSceneGUIDelegate = GridUpdate;
         updatePrefabslist();
     }
 
@@ -30,14 +30,13 @@ public class HexGridEditor : Editor {
 
         if (e.isKey) {
             if (e.character == ADD) {
-                Debug.Log("Add Tile");
+                Debug.Log("Add Tile: " + "("+ selectedPrefab +")" + prefabs[selectedPrefab].name);
                 Vector3 prefabPos = grid.FindNextPoint(new Vector3(mousePos.x, 0.0f, mousePos.z));
                 GameObject obj;
-                Object prefab = prefabs[selectedPrefab]; //PrefabUtility.GetPrefabParent(Selection.activeObject);
+                Object prefab = prefabs[selectedPrefab];
                 if (prefab) {
                     obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-                    obj.transform.position = new Vector3(prefabPos.x, 0.0f, prefabPos.z); // new Vector3(mousePos.x, 0.0f, mousePos.z);
-
+                    obj.transform.position = new Vector3(prefabPos.x, 0.0f, prefabPos.z);
                     obj.transform.localScale = new Vector3(grid.TileWidth * (obj.transform.localScale.x / grid.TileWidth), obj.transform.localScale.y, obj.transform.localScale.z);
                 }
             } else if (e.character == REMOVE) {
@@ -61,10 +60,19 @@ public class HexGridEditor : Editor {
         GUILayout.Label("Size");
         grid.Size = Mathf.Max(0.001f, EditorGUILayout.FloatField(grid.Size, GUILayout.Width(150)));
         GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Label("Point Size");
+        grid.pointSize = Mathf.Max(1, EditorGUILayout.FloatField(grid.pointSize, GUILayout.Width(150)));
+        GUILayout.EndHorizontal();
         
         GUILayout.BeginHorizontal();
         GUILayout.Label("Offset");
         grid.offset= Mathf.Max(0, EditorGUILayout.FloatField(grid.offset, GUILayout.Width(150)));
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.Separator();
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
@@ -78,13 +86,16 @@ public class HexGridEditor : Editor {
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
-        GUILayout.Label("Point Size");
-        grid.pointSize = Mathf.Max(1, EditorGUILayout.FloatField(grid.pointSize, GUILayout.Width(150)));
+        EditorGUILayout.Separator();
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
         GUILayout.Label("Grid Color");
         grid.color = EditorGUILayout.ColorField(grid.color, GUILayout.Width(150));
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.Separator();
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
