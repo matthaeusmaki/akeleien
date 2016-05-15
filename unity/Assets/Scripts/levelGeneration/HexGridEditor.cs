@@ -24,14 +24,14 @@ public class HexGridEditor : Editor {
         if (e.isKey) {
             if (e.character == ADD) {
                 Debug.Log("Add Tile");
-                GameObject obj;
-                Object prefab = PrefabUtility.GetPrefabParent(Selection.activeObject);
-                if (prefab) {
-                    obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-                    obj.transform.position = new Vector3(mousePos.x, 0.0f, mousePos.z);
+                //GameObject obj;
+                //Object prefab = PrefabUtility.GetPrefabParent(Selection.activeObject);
+                //if (prefab) {
+                //    obj = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                //    obj.transform.position = new Vector3(mousePos.x, 0.0f, mousePos.z);
 
-                    obj.transform.localScale = new Vector3(grid.tileWidth * (obj.transform.localScale.x / grid.tileWidth), obj.transform.localScale.y, obj.transform.localScale.z);
-                }
+                //    obj.transform.localScale = new Vector3(grid.tileWidth * (obj.transform.localScale.x / grid.tileWidth), obj.transform.localScale.y, obj.transform.localScale.z);
+                //}
             } else if (e.character == REMOVE) {
                 Debug.Log("Remove Tile");
             }
@@ -41,12 +41,9 @@ public class HexGridEditor : Editor {
     public override void OnInspectorGUI() {
         GUILayout.BeginHorizontal();
         GUILayout.Label("Size");
-        grid.size = Mathf.Max(0.001f, EditorGUILayout.FloatField(grid.size, GUILayout.Width(150)));
+        grid.Size = Mathf.Max(0.001f, EditorGUILayout.FloatField(grid.Size, GUILayout.Width(150)));
         GUILayout.EndHorizontal();
-
-        grid.tileHeight = grid.size * 2;
-        grid.tileWidth = Mathf.Sqrt(3) / 2 * grid.tileHeight;
-
+        
         GUILayout.BeginHorizontal();
         GUILayout.Label("Offset");
         grid.offset= Mathf.Max(0, EditorGUILayout.FloatField(grid.offset, GUILayout.Width(150)));
@@ -65,11 +62,6 @@ public class HexGridEditor : Editor {
         GUILayout.BeginHorizontal();
         GUILayout.Label("Grid Color");
         grid.color = EditorGUILayout.ColorField(grid.color, GUILayout.Width(150));
-        GUILayout.EndHorizontal();
-
-        GUILayout.BeginHorizontal();
-        GUILayout.Button("Redraw");
-        grid.Redraw();
         GUILayout.EndHorizontal();
 
         SceneView.RepaintAll();

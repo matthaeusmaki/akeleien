@@ -3,16 +3,24 @@ using System.Collections;
 
 public class HexGrid : MonoBehaviour {
 
-    public float size = 5.0f;
+    private float size;
+    public float Size {
+        get {
+            return size;
+        }
+        set {
+            size = value;
+            tileHeight = size * 2;
+            tileWidth = Mathf.Sqrt(3) / 2 * tileHeight;
+        }
+    }
     public int rows = 10;
     public int columns = 10;
     public float offset = 0.0f;
     public Color color = Color.red;
-
-    public float tileHeight {get; set;}
-    public float tileWidth {get; set;}
-
-    private bool draw = false;
+    
+    private float tileHeight;
+    private float tileWidth;
 
     void OnDrawGizmos() {
         Gizmos.color = color;
@@ -41,9 +49,5 @@ public class HexGrid : MonoBehaviour {
         float angleDeg = 60 * i + 30;
         float angleRad = Mathf.PI / 180 * angleDeg;
         return new Vector3(center.x + size * Mathf.Cos(angleRad), 0.0f, center.y + size * Mathf.Sin(angleRad));
-    }
-
-    public void Redraw() {
-        draw = true;
     }
 }
