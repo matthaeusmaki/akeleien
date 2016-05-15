@@ -7,15 +7,6 @@ using System;
 /// </summary>
 public class MainCharacter : MonoBehaviour {
 
-<<<<<<< HEAD
-    public AudioSource audioSourceFootsteps;        //	Die Sound-Quelle für Schritt-Geräusche
-    public AudioSource audioSourceMouth;            //	eine Sound-Quelle für alle anderen Sounds des Characters außer die Schritt-Geräushce
-    public AudioClip attackClip;                    //	Aduio Clip of the player attacking
-    public AudioClip[] gethitClips;             //	Audio Clips für die verschiedenen Sounds wenn der Charakter Schaden erleidet
-    public AudioClip dieClip;                   //	Audio-clip für das Sterben des Charakters
-    public AudioClip[] footstepClips;               //	Audio-clips für die verschiedenen Schrittgeräusche
-    public float health;						//	Current Healthpoints of the player
-=======
 	public AudioSource 	audioSourceFootsteps;		//	Die Sound-Quelle für Schritt-Geräusche
 	public AudioSource 	audioSourceMouth;			//	eine Sound-Quelle für alle anderen Sounds des Characters außer die Schritt-Geräushce
 	public AudioClip 	attackClip;					//	Aduio Clip of the player attacking
@@ -23,7 +14,6 @@ public class MainCharacter : MonoBehaviour {
 	public AudioClip 	dieClip;					//	Audio-clip für das Sterben des Charakters
 	public AudioClip[] 	footstepClips;				//	Audio-clips für die verschiedenen Schrittgeräusche
 	
->>>>>>> c9ba55e700fd276ff2a676015f02462f6bd68dfb
 	public float 		attackRange = 1;			//	Die Reichweite der Waffe
 	public float 		forceToPushStone = 100f;
 
