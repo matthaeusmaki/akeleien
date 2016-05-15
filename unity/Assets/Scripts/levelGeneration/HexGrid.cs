@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class HexGrid : MonoBehaviour {
 
-    private float size;
+    private float size = 10.0f;
     public float Size {
         get {
             return size;
