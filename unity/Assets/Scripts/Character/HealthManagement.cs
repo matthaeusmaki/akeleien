@@ -15,6 +15,9 @@ public class HealthManagement : MonoBehaviour {
 	/// <summary> The GUI-Element to show the HealthPoints </summary>
 	public Slider m_Slider;
 
+    /// <summary> If the slider rotates to the camera </summary>
+    public bool rotateSliderToCamera = true;
+
 	/// <summary> The Healhtpoints the character starts with </summary>
 	public float m_StartingHealth	=	100f;
 
@@ -96,7 +99,8 @@ public class HealthManagement : MonoBehaviour {
 			if (m_FillImage)
 				m_FillImage.color = Color.Lerp (m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
 
-			m_Slider.transform.rotation = mainCamera.transform.rotation;
+            if (rotateSliderToCamera)
+			    m_Slider.transform.rotation = mainCamera.transform.rotation;
 		} else {
 			m_Slider.gameObject.SetActive (false);
 		}
