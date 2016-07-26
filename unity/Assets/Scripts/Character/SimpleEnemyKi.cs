@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SimpleEnemyKi : MonoBehaviour {
+public class SimpleEnemyKi : BasicCharacter {
 
 	/// <summary>Die Höhe des Schadens die der Gegner verursacht</summary>
 	public float damage = 15.0f;
@@ -33,17 +33,13 @@ public class SimpleEnemyKi : MonoBehaviour {
 	/// <summary> Die Wegpunkte die der Charakter abläuft </summary>
 	public Transform[] waypoints;
 
-	[HideInInspector]
-	public bool isAttacking = false;
+	
 
 	//------------------------------------------------------------------------------------------------------------------------
 
 	/// <summary> Zeit die der Gegner am erreichte Wegpunkt schon wartet </summary>
 	private float patrolTime = 0f;
-
-	/// <summary> Referenz auf die Agent für die automatische Navigation </summary>
-	private NavMeshAgent nav;
-
+    
 	/// <summary>The Main-Character</summary>
 	private GameObject player;
 
@@ -53,13 +49,15 @@ public class SimpleEnemyKi : MonoBehaviour {
 	/// <summary>Referenz auf das Script 'EnemySight' welches sich darum kümmert ob der Spieler gesehen wird.</summary>
 	private EnemySight enemySight;
 
-	/// <summary> The health management. </summary>
-	private HealthManagement healthManagement;
-
 	/// <summary>The index of the waypoint. </summary>
 	private int waypointIndex = 0;
 
 	private float timeSinceLastActionHappend = 0.0f;
+
+    private readonly short STATE_Idle = 0;
+    private readonly short STATE_Patrolling = 1;
+    private readonly short STATE_Charge = 2;
+    private readonly short STATE_Attack = 3;
 
 	//  ======================================================================================================================
 
@@ -72,31 +70,7 @@ public class SimpleEnemyKi : MonoBehaviour {
 	/// 	Wird verwendet um die referenzen auf andere Objekte zu erlangen		
 	/// 
 	/// </summary>
-	void Awake() {		
-		nav 		= 	GetComponent<NavMeshAgent> ();
-		player		=	GameObject.FindGameObjectWithTag ("Player");
-
-		enemySight	=	GetComponent<EnemySight> ();
-		healthManagement	=	GetComponent<HealthManagement> ();
-		animManagement	=	GetComponent<AnimationManagement> ();
-
-		if (healthManagement == null)
-			Debug.Log ("HealthManagement nicht gefunden !");
-
-		if (animManagement == null)
-			Debug.Log ("AnimManagement nicht gefunden !");
-			
-
-		if (player == null) 
-			Debug.Log ("Player-Referenz nicht gefunden !");		
-
-		if ( nav == null) 
-			Debug.Log("NavMeshAgent-Referenz nicht gefunden !");
-
-		if (enemySight == null)
-			Debug.Log ("EnemySihgtScript-Referenz nicht gefunden");
-
-	}
+    void Awake() { }
 
 	/// <summary>
 	/// Event:
@@ -105,89 +79,77 @@ public class SimpleEnemyKi : MonoBehaviour {
 	/// </summary>
 	void Start () {
 
+        player = GameObject.FindGameObjectWithTag("Player");
+        enemySight = GetComponent<EnemySight>();
+        animManagement = GetComponent<AnimationManagement>();
 
+        if (player == null)
+            Debug.Log("Player-Referenz nicht gefunden !");
+        
+        if (enemySight == null)
+            Debug.Log("EnemySihgtScript-Referenz nicht gefunden");
+
+        if (animManagement == null)
+            Debug.Log("AnimManagement nicht gefunden !");
+
+        if (nav == null)
+        {
+            nav = GetComponent<NavMeshAgent>();
+            if (nav == null) { 
+                Debug.Log("NavMeshAgent-Referenz nicht gefunden !");
+            }
+        }
+
+        if (healthManagement == null)
+        {
+            healthManagement = GetComponent<HealthManagement>();
+            if (healthManagement == null)
+            {
+                Debug.Log("HealthManagement nicht gefunden !");
+            }
+        }
+            
 	}
 
 	// Update is called once per frame
 	void Update () {
-		//		Debug.DrawLine (this.transform.position, player.transform.position);
 
 		//	Is the character alive? 
-		if (healthManagement.alive) {
-            //Debug.Log("Time: " + timeSinceLastActionHappend);
+		if (healthManagement.alive) 
+        {
+            if (healthManagement.currentHealth <= 0)
+            {
+                Debug.LogError("Alive obwohl keine Lebenspunkte mehr");
+            }
 
+            //  Ermittle State-Machine
+            short state = getState();
 
-			bool isPlayerInSight = enemySight.isPlayerInSight;		//	is the player in Sight?
-			bool isPlayerInWeaponrange = isPlayerInWeaponRange ();	//	Is the player in Weapon-Range?
-
-			//Debug.Log ("(isPlayerInSight? " + isPlayerInSight + ") (isPlayerInWeaponRange? " + isPlayerInWeaponrange + ") (Distance=" + Vector3.Distance(this.transform.position, player.transform.position) + ")");
-
-			//	verifies if the character is/should chase
-			bool isChasing = setMode (isPlayerInSight);
-            
-
-			//	Wenn der Spieler am Leben und in Waffen-Reichweite ist
-			if (isPlayerInWeaponrange 
-                //&& !isAttacking
-                ) {
-
-				//	Timer wieder auf 0 setzen
-				timeSinceLastActionHappend = 0.0f;
-
-				//	Schlage / Attackiere Spieler
-				animManagement.attack (player, 1);
+            //  Attackiere 
+            if (state == STATE_Attack)
+            {
                 isAttacking = true;
+                timeSinceLastActionHappend = 0f;
+                animManagement.attack(player, 1);
+            }
 
-			} 
+            //  charge
+            if (state == STATE_Charge)
+            {
+                animManagement.run(player.transform.position, runSpeed);
+            }
 
-			//	Wenn der Spieler am Leben ist und in Sichtweite
-			else if (isChasing) {
-                timeSinceLastActionHappend += Time.deltaTime;
-				animManagement.run (player.transform.position, runSpeed);
-			} 
+            //  Patrolliere
+            if (state == STATE_Patrolling)
+            {
+                patrolling();
+            }
 
-			//	Default --> Patrollieren
-			else {
-                timeSinceLastActionHappend = 0.0f;
-				//	Patrolliere weiter
-				//Debug.Log ("patrolliere ! [" + Time.fixedTime + "]");
-				patrolling ();
-			}
 
 		} else {
 			animManagement.die ();
 		}
 
-	}
-
-	/// <summary>
-	/// Verifies if the character should chase the player.
-	/// </summary>
-	/// <param name="isPlayerInSight">If set to <c>true</c> is player in sight.</param>
-	/// <param name="isPlayerInWeaponrange">If set to <c>true</c> is player in weaponrange.</param>
-	private bool setMode(bool isPlayerInSight) {
-
-        bool isChasing = false;
-
-		//	Wenn (Spieler am Leben) und (noch nicht im Chase-Modus) und (Spieler in Sichtweite ist)
-		if (
-			healthManagement.alive
-			&&	isPlayerInSight) {
-                
-			    isChasing = true;
-		}
-
-		//	Wenn im Chase-Modues
-		if (isChasing) {
-
-			//	Is the last combat-Action hast past to long
-            if (timeSinceLastActionHappend > maxTimeOfInactivityOnCombat)
-            {                
-                isChasing = false;
-                
-            }
-		}
-        return isChasing;
 	}
 
 	/// <summary>
@@ -199,12 +161,49 @@ public class SimpleEnemyKi : MonoBehaviour {
 		return  distance <= weaponRange;
 	}
 
+    /// <summary>
+    /// Bestimmt den Status für den charakter.
+    /// Mögliche Stati sind:
+    ///     -   Idle
+    ///     -   Patrollieren
+    ///     -   Charging (Zum Ziel hinlaufen)
+    ///     -   Attacking (= Zuschlagen)
+    /// </summary>
+    private short getState() {
+
+        bool isPlayerInSight = enemySight.isPlayerInSight;		//	is the player in Sight?
+        bool isPlayerInWeaponrange = isPlayerInWeaponRange();	//	Is the player in Weapon-Range?
+                
+        //Debug.Log("[getState] (PlayerInWeaponRange? " + isPlayerInWeaponrange + ") (isAttacking? " + isAttacking + ") Time=" + Time.deltaTime );
+        
+        //	Wenn der Spieler am Leben und in Waffen-Reichweite ist --> attackiere
+        if (isPlayerInWeaponrange   
+            &&  !isAttacking) 
+        {
+            Debug.Log("Return attack. " + Time.deltaTime);
+            return STATE_Attack;
+        }
+
+        //	Wenn der Spieler am Leben ist und in Sichtweite --> charge
+        else if (healthManagement.alive 
+            &&  isPlayerInSight 
+            &&  timeSinceLastActionHappend < maxTimeOfInactivityOnCombat)
+        {
+            return STATE_Charge;
+        }
+
+        //	Default --> Patrollieren
+        else
+        {
+            return STATE_Patrolling;
+        }
+        
+    }
+
 	/// <summary>
 	/// Patrolliert weiter.
 	/// </summary>
 	private void patrolling() {
-
-		Debug.Log ("Start patrolling...");
 
 		//	If no Waypoints set --> abort
 		if (waypoints.Length == 0)

@@ -13,22 +13,22 @@ public class HealthManagement : MonoBehaviour {
 
 
 	/// <summary> The GUI-Element to show the HealthPoints </summary>
-	public Slider m_Slider;
+	public Slider slider;
 
     /// <summary> If the slider rotates to the camera </summary>
     public bool rotateSliderToCamera = true;
 
 	/// <summary> The Healhtpoints the character starts with </summary>
-	public float m_StartingHealth	=	100f;
+	public float startingHealth	=	100f;
 
 	/// <summary> The Color the fo the Healthbar with full HealthPoints </summary>
-	public Color m_FullHealthColor 	=	Color.green;
+	public Color fullHealthColor 	=	Color.green;
 
 	/// <summary> The Color the fo the Healthbar with no more HealthPoints </summary>
-	public Color m_ZeroHealthColor	=	Color.red;
+	public Color zeroHealthColor	=	Color.red;
 
 	/// <summary> The image component of the Slieder </summary>
-	public Image m_FillImage;
+	public Image fillImage;
 
 	/// <summary> The time of last damage. </summary>
 	[HideInInspector]
@@ -39,7 +39,7 @@ public class HealthManagement : MonoBehaviour {
 
 
 	/// <summary> The current Amount of Healthpoints</summary>
-	private float m_CurrentHealth;
+	public float currentHealth;
 
 	[HideInInspector]
 	/// <summary> Indicator if the Character is alive </summary>
@@ -60,7 +60,7 @@ public class HealthManagement : MonoBehaviour {
 	//	===================================================================================
 
 	public void OnEnable() {
-		m_CurrentHealth	=	m_StartingHealth;
+		currentHealth	=	startingHealth;
 		alive =	true;
 
 		drawHealthbar ();
@@ -73,8 +73,8 @@ public class HealthManagement : MonoBehaviour {
 	/// <param name="amountOfDamage">Amount of damage.</param>
 	public void takeDamage (int amountOfDamage) {
         
-		m_CurrentHealth -= amountOfDamage;
-		if (m_CurrentHealth <= 0) {
+		currentHealth -= amountOfDamage;
+		if (currentHealth <= 0) {
 			alive = false;
 		}
 
@@ -85,24 +85,37 @@ public class HealthManagement : MonoBehaviour {
 
 	/// <summary>
 	/// Update the Healthbar. (Setting value, and setting the Color of the bar)
+    /// Also rotates the healthbar to the camera
 	/// </summary>
 	private void drawHealthbar() {
 
-		if (alive) {
-		
+		if (alive) 
+        {		
 			//	Set the sliedrs valure
-			if (!m_Slider)
-				return;		
+            if (!slider)
+            {
+                return;
+            }
 
-			m_Slider.value = m_CurrentHealth;
+			slider.value = currentHealth;
 
-			if (m_FillImage)
-				m_FillImage.color = Color.Lerp (m_ZeroHealthColor, m_FullHealthColor, m_CurrentHealth / m_StartingHealth);
+            if (fillImage)
+            {
+                fillImage.color = Color.Lerp(zeroHealthColor, fullHealthColor, currentHealth / startingHealth);
+            }				
 
             if (rotateSliderToCamera)
-			    m_Slider.transform.rotation = mainCamera.transform.rotation;
+            {
+                slider.transform.rotation = mainCamera.transform.rotation;
+            }
 		} else {
-			m_Slider.gameObject.SetActive (false);
+            if (slider != null)
+            {
+                if (slider.gameObject != null)
+                {
+                    slider.gameObject.SetActive(false);
+                }
+            }
 		}
 			
 	}

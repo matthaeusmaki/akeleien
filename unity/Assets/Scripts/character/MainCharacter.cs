@@ -5,25 +5,24 @@ using System;
 /// <summary>
 /// Main character.
 /// </summary>
-public class MainCharacter : MonoBehaviour {
-
+public class MainCharacter : BasicCharacter {
+    /*
 	public AudioSource 	audioSourceFootsteps;		//	Die Sound-Quelle für Schritt-Geräusche
 	public AudioSource 	audioSourceMouth;			//	eine Sound-Quelle für alle anderen Sounds des Characters außer die Schritt-Geräushce
 	public AudioClip 	attackClip;					//	Aduio Clip of the player attacking
 	public AudioClip[] 	gethitClips;				//	Audio Clips für die verschiedenen Sounds wenn der Charakter Schaden erleidet
 	public AudioClip 	dieClip;					//	Audio-clip für das Sterben des Charakters
 	public AudioClip[] 	footstepClips;				//	Audio-clips für die verschiedenen Schrittgeräusche
-	
+	*/
 	public float 		attackRange = 1;			//	Die Reichweite der Waffe
 	public float 		forceToPushStone = 100f;
 
 	private PiontAndClickMovement movementScript;	//	Eine Referenz auf das Script das sich um das Movement kümmert
-	private Rigidbody 	m_rigidbody;				//	Eine Referenz auf das Rigidbody-Objekt welches für Physikspielereien benötigt wird
-	private Animator 	anim;						//	Reference to the animator component
-	private NavMeshAgent agent;						//	Eine Referenz auf den Agent für die Pfadfindung notwendig ist
-    [HideInInspector]
-    public HealthManagement healthManagement;
-    public bool isAttacking = false;
+	//private Rigidbody 	m_rigidbody;				//	Eine Referenz auf das Rigidbody-Objekt welches für Physikspielereien benötigt wird
+	//private Animator 	anim;						//	Reference to the animator component
+	//private NavMeshAgent agent;						//	Eine Referenz auf den Agent für die Pfadfindung notwendig ist
+
+    
 
 
 	/// <summary>
@@ -32,7 +31,7 @@ public class MainCharacter : MonoBehaviour {
 	/// </summary>
 	private void Awake() {		
 		
-
+        
 	}
 
 	/// <summary>
@@ -40,11 +39,28 @@ public class MainCharacter : MonoBehaviour {
 	/// but only if the Script-Component ist enabled.
 	/// </summary>
 	void Start () {
-		anim = GetComponent<Animator>();
-		m_rigidbody = GetComponent<Rigidbody> ();
-		agent = GetComponent<NavMeshAgent> ();
+		
 		movementScript = GetComponent<PiontAndClickMovement> ();
-        healthManagement = GetComponent<HealthManagement>();
+
+        if (healthManagement == null)
+        {
+            healthManagement = GetComponent<HealthManagement>();
+        }
+
+        if (anim == null)
+        {
+            anim = GetComponent<Animator>();
+        }
+        //m_rigidbody = GetComponent<Rigidbody> ();
+
+        if (nav == null)
+        {
+            nav = GetComponent<NavMeshAgent> ();
+        }
+        
+
+
+        
 	}
 	
 	/// <summary>
@@ -80,17 +96,16 @@ public class MainCharacter : MonoBehaviour {
 	}
 
 	private void AnimationManagement () {
-
-		//	Bestimme Geschwindigkeit
-		if (agent.remainingDistance > 0.5f) { // ein abfrage auf exakt 0 kann sporadisch dazu führen dass der Charakter um den Zielpunkt "herumeiert"
-			anim.SetFloat ("Speed", agent.speed);
+        
+		//	Bestimme Geschwindigkeit        
+		if (nav.remainingDistance > 0.5f) { // ein abfrage auf exakt 0 kann sporadisch dazu führen dass der Charakter um den Zielpunkt "herumeiert"
+			anim.SetFloat ("Speed", nav.speed);
 		} else {
 			anim.SetFloat ("Speed", 0f);
 		}
 
 	}
-
-
+    
 	/// <summary>
 	/// Controles what the characters does
 	/// </summary>
@@ -101,11 +116,8 @@ public class MainCharacter : MonoBehaviour {
 			//	Angriffs ggf triggern
 			bool attack = Input.GetKeyDown(KeyCode.Space);
 
-			if (attack && !isAttacking) {				
-				audioSourceMouth.clip = attackClip;
-				audioSourceMouth.Play ();
-                anim.SetBool("Attack", true);
-                isAttacking = true;
+			if (attack) {
+                           
 			    
 				angreifen ();
 			    
@@ -118,8 +130,7 @@ public class MainCharacter : MonoBehaviour {
 		}
 
 	}
-
-
+    
 	/// <summary>
 	/// Plays the sounds of the character
 	///  - footsteps
@@ -131,7 +142,7 @@ public class MainCharacter : MonoBehaviour {
 		
 		if (anim.GetCurrentAnimatorStateInfo (0).IsName ("Run")) {
 			if (!audioSourceFootsteps.isPlaying) {
-				audioSourceFootsteps.clip = footstepClips[UnityEngine.Random.Range(0,footstepClips.Length -1)];
+                audioSourceFootsteps.clip = audioClips_footsteps[UnityEngine.Random.Range(0, audioClips_footsteps.Length - 1)];
 				audioSourceFootsteps.Play ();
 			} 
 		}
@@ -146,6 +157,8 @@ public class MainCharacter : MonoBehaviour {
 	/// </summary>
 	/// <param name="dmg">Die Höhe des Schadens die der Charakter erleidet</param>
 	public void gettingHit(float dmg) {
+        Debug.Log("... getting hit ...." + Time.deltaTime);
+        
         if (healthManagement.alive)
         {
             //	Taking dmg 
@@ -160,11 +173,10 @@ public class MainCharacter : MonoBehaviour {
             {	// getting hit
                 anim.SetTrigger("GettingHit");
 
-                audioSourceMouth.clip = gethitClips[UnityEngine.Random.Range(0, gethitClips.Length - 1)];
+                audioSourceMouth.clip = audioClips_getHits[UnityEngine.Random.Range(0, audioClips_getHits.Length - 1)];
                 audioSourceMouth.Play();
             }
         }
-
 	}
 
 	/// <summary>
@@ -181,7 +193,7 @@ public class MainCharacter : MonoBehaviour {
 			anim.SetTrigger ("Sterben");	//	Sterbe-Animation antriggern
 
 			//	Sterbe-Sound abspielen
-			audioSourceMouth.clip = dieClip;
+            audioSourceMouth.clip = audioClip_die;
 			audioSourceMouth.Play ();
 
 			//	Movement-Steuerung deaktivieren
@@ -191,12 +203,15 @@ public class MainCharacter : MonoBehaviour {
 
 	private void angreifen() {
 
+        Debug.Log("[angreifen] isAttacking:" + isAttacking + "(" + Time.deltaTime + ")");
+
 		//	Nur wenn angreifen momentan nicht ausgeführt wird
-        
-		Debug.Log ("currentAnimStateInfo: isAttack? " + anim.GetCurrentAnimatorStateInfo (0).IsName("Attack"));
-		if (anim.GetCurrentAnimatorStateInfo(0).IsName("Attack")) return;
+        if (isAttacking) return;
 
-
+        //  Spiele Sound ab
+        audioSourceMouth.clip = audioClip_attack;
+        audioSourceMouth.Play();
+        anim.SetBool("Attack", true);   
 
 		//	Prüfe auf Wandtreffer
 		Collider[] colliders = Physics.OverlapSphere(transform.position, attackRange, (1<<9) );
