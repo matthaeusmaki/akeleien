@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using UnityEngine.EventSystems;
 
 public class PiontAndClickMovement : MonoBehaviour {
 	    
@@ -17,10 +18,15 @@ public class PiontAndClickMovement : MonoBehaviour {
 	    
         //  Bei Mausklick
         if (Input.GetKeyDown(KeyCode.Mouse0))
-        {            
-                        
+        {               
             try
             {
+                //  Nur wenn Maus nicht über UI Element ist
+                if (EventSystem.current.IsPointerOverGameObject())
+                {
+                    return;
+                }
+
 				//  Ermittle Ziel
 				Vector3 ziel = findTargetPoint();
                 agent.SetDestination(ziel);
