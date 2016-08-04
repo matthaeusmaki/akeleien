@@ -130,7 +130,7 @@ public class SimpleEnemyKi : BasicCharacter {
             {
                 isAttacking = true;
                 timeSinceLastActionHappend = 0f;
-                animManagement.attack(player, 1);
+                animManagement.attack(player, 5);
             }
 
             //  charge

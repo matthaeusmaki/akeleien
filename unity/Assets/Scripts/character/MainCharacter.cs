@@ -163,6 +163,7 @@ public class MainCharacter : BasicCharacter {
         {
             //	Taking dmg 
             healthManagement.takeDamage( (int) dmg);
+            Debug.Log(Time.deltaTime + " Leben: " + healthManagement.currentHealth);
 
             //	Play animation 
             if (!healthManagement.alive)
