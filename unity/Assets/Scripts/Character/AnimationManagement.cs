@@ -53,7 +53,7 @@ public class AnimationManagement : MonoBehaviour {
 	public void die() {
 		
 		animator.SetBool (PARAM_die, true);        
-        nav.enabled = false;
+        nav.enabled = false;        
 		//@todo character disablen
 
 	}

@@ -22,7 +22,7 @@ public class AttackOverwatch : StateMachineBehaviour
 	{
         if (animatorStateInfo.IsName("Attack"))
         {
-            animator.gameObject.GetComponent<BasicCharacter>().isAttacking = true;
+            animator.gameObject.GetComponent<BasicCharacter>().isAttacking = true;            
         } 
 	}
 }
