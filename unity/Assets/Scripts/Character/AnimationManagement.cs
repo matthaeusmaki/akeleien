@@ -6,6 +6,9 @@ using System.Collections;
 /// </summary>
 public class AnimationManagement : MonoBehaviour {
 
+    [HideInInspector]
+    public bool isAttacking = false;
+
 	private string PARAM_walk 		=	"walk";
 	private string PARAM_run		=	"run";
 	private string PARAM_idle		=	"idle";
@@ -121,5 +124,18 @@ public class AnimationManagement : MonoBehaviour {
 		nav.destination = position;
 		nav.speed = speed;
 	}
+
+    /// <summary>
+    /// Triggert die Ausführung eines Skills an
+    /// </summary>
+    /// <param name="nameOfSkill">Name des Triggers im Animator der gestartet werden soll</param>
+    public void triggerSkill(string nameOfSkill)
+    {
+        if (!isAttacking)
+        {
+            isAttacking = true;
+            animator.SetTrigger(nameOfSkill);
+        }
+    }
 
 }
