@@ -33,6 +33,11 @@ public class SimpleEnemyKi : BasicCharacter {
 	/// <summary> Die Wegpunkte die der Charakter abläuft </summary>
 	public Transform[] waypoints;
 
+    /// <summary> Das Prefab das als Projektil bei einem Magie-Angriff erzeugt wird </summary>
+    public GameObject projectilePrefab;
+
+    /// <summary> Die Position wo das Projektil erzeugt wird </summary>
+    public GameObject projectileSpawn;
 	
 
 	//------------------------------------------------------------------------------------------------------------------------
@@ -236,4 +241,18 @@ public class SimpleEnemyKi : BasicCharacter {
 		}
 
 	}
+
+    public void attackMagic()
+    {
+        
+        //  erzeuge Gameobject aus Prefab
+        GameObject goProjectile = Instantiate(projectilePrefab.gameObject, projectileSpawn.transform.position, projectileSpawn.transform.rotation) as GameObject;
+        
+        //  Schieße Projektil auf aktuelle Position des Spielers
+        Vector3 vel = (player.transform.position - projectileSpawn.transform.position).normalized * 7;
+        vel.y = 0;
+        goProjectile.GetComponent<Rigidbody>().velocity = vel;
+    }
+
+    
 }
