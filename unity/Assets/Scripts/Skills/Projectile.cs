@@ -42,12 +42,18 @@ public class Projectile : MonoBehaviour {
     {
         //  Start the Explosion
         if (explosionPrefab)
+        {
             Instantiate(explosionPrefab.gameObject, transform.position, transform.rotation);
+        }
 
         //  Lösche das Projektil
+        //Destroy(this);
+        Debug.Log("Destorying projectile");
         Destroy(this);
+        //DestroyObject(this);
 
         //  Calculate damage to player
+        Debug.Log("calculate dmg");
         dealDamage();
     }
 
