@@ -49,7 +49,7 @@ public class Projectile : MonoBehaviour {
         //  Lösche das Projektil
         //Destroy(this);
         Debug.Log("Destorying projectile");
-        Destroy(this);
+        Destroy(this.gameObject);
         //DestroyObject(this);
 
         //  Calculate damage to player
